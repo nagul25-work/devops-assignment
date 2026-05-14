@@ -139,3 +139,26 @@ jobs:
             sleep 5
             curl -f http://localhost/health || exit 1
             echo "Health check passed"
+
+      - name: Notify Slack
+        if: always()
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "${{ job.status == 'success' && 'Deployment successful' || 'Deployment failed' }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>",
+              "attachments": [
+                {
+                  "color": "${{ job.status == 'success' && 'good' || 'danger' }}",
+                  "fields": [
+                    { "title": "Repository", "value": "${{ github.repository }}", "short": true },
+                    { "title": "Branch", "value": "${{ github.ref_name }}", "short": true },
+                    { "title": "Commit", "value": "${{ github.sha }}", "short": true },
+                    { "title": "Triggered by", "value": "${{ github.actor }}", "short": true }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
