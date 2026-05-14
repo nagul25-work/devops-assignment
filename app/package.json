@@ -1,10 +1,11 @@
 {
   "name": "app",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Simple Express app for DevOps assignment",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js",
+    "test": "jest --coverage"
   },
   "keywords": [],
   "author": "",
