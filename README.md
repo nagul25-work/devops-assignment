@@ -57,4 +57,4 @@ For a more automated rollback, revert the commit on `main` and push — the pipe
 ```bash
 git revert HEAD
 git push origin main
-```<img width="1917" height="1012" alt="image" src="https://github.com/user-attachments/assets/dcdcd2df-47ea-44ac-86ba-eb8e8dfa883d" />
+```
