@@ -89,6 +89,25 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Copy nginx config
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: nginx.conf
+          target: /home/ubuntu/nginx.conf
+
+      - name: Configure Nginx
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo cp ~/nginx.conf /etc/nginx/nginx.conf
+            sudo nginx -t && sudo systemctl reload nginx
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1
@@ -98,37 +117,12 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
-            docker pull ${{ steps.login-ecr.outputs.registry }}/devops-assignment:latest
+            docker pull ${{ steps.login-ecr.outputs.registry }}/devops-assignment:${{ needs.build.outputs.image_tag }}
             docker stop app || true
             docker rm app || true
-            docker run -d --name app -p 3000:3000 --restart unless-stopped ${{ steps.login-ecr.outputs.registry }}/devops-assignment:latest
-
-      - name: Configure Nginx
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            sudo cp /dev/stdin /etc/nginx/nginx.conf << 'EOF'
-            events { worker_connections 1024; }
-            http {
-              server {
-                listen 80;
-                location / {
-                  proxy_pass http://localhost:3000;
-                  proxy_http_version 1.1;
-                  proxy_set_header Upgrade $http_upgrade;
-                  proxy_set_header Connection 'upgrade';
-                  proxy_set_header Host $host;
-                  proxy_cache_bypass $http_upgrade;
-                }
-              }
-            }
-            EOF
-            sudo nginx -t
-            sudo systemctl reload nginx
-
+            docker run -d --name app -p 3000:3000 --restart unless-stopped ${{ steps.login-ecr.outputs.registry }}/devops-assignment:${{ needs.build.outputs.image_tag }}
+            docker image prune -f
+            
       - name: Health check
         uses: appleboy/ssh-action@v1
         with:
