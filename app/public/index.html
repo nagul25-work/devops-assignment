@@ -95,6 +95,7 @@
 
     .status {
       display: flex;
+      justify-content: center;
       align-items: center;
       gap: 8px;
       font-size: 12px;
@@ -137,14 +138,11 @@
       <div class="card-header"><p>Pipeline stages</p></div>
       <div class="stage"><span class="dot"></span><span class="stage-name">Test</span><span class="stage-detail">Jest + coverage</span></div>
       <div class="stage"><span class="dot"></span><span class="stage-name">Build</span><span class="stage-detail">Docker multi-stage</span></div>
-      <div class="stage"><span class="dot"></span><span class="stage-name">Push</span><span class="stage-detail">Amazon ECR</span></div>
       <div class="stage"><span class="dot"></span><span class="stage-name">Deploy</span><span class="stage-detail">EC2 via SSH</span></div>
     </div>
 
     <div class="status">
-      <span class="status-dot"></span>
-      <span>All systems operational</span>
-      <span class="status-right">/health → 200 OK</span>
+      <span>/health → 200 OK</span>
     </div>
   </div>
 </body>
