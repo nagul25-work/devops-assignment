@@ -70,6 +70,23 @@ jobs:
         run: |
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.meta.outputs.tag }}
           docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+      
+      - name: Archive image digest to S3
+        run: |
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ steps.meta.outputs.tag }})
+          
+          if [ -z "$DIGEST" ]; then
+            echo "Error: digest is empty"
+            exit 1
+          fi
+
+          echo "{
+            \"commit\": \"${{ github.sha }}\",
+            \"digest\": \"$DIGEST\",
+            \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",
+            \"actor\": \"${{ github.actor }}\"
+          }" > digest.json
+          aws s3 cp digest.json s3://devops-assignment-artifacts-regal/digests/${{ github.sha }}.json
 
   deploy:
     name: Deploy
